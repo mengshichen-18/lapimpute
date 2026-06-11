@@ -1,7 +1,7 @@
-SlateImpute: Graph Node Feature Imputation
-==========================================
+LapImpute: Graph Node Feature Imputation
+========================================
 
-This directory contains the code for SlateImpute, a graph-based node
+This repository contains the code for LapImpute, a graph-based node
 feature imputation method built on top of GNNs and k-NN style
 initialization. The implementation focuses on imputing missing node
 features on citation, web, and heterophilous graphs under various
@@ -10,14 +10,14 @@ missing-rate settings.
 Directory layout
 ----------------
 
-Key files and folders under `SlateImpute/`:
+Key files and folders:
 
-- `slateimpute.py`: main training / imputation script for SlateImpute.
-- `slateimpute.sh`: shell script to run SlateImpute across multiple datasets.
+- `lapimpute.py`: main training / imputation script for LapImpute.
+- `lapimpute.sh`: shell script to run LapImpute across multiple datasets.
 - `util_funcs.py`: utility functions for dataset loading, k-NN
   imputation, similarity computation, evaluation metrics, and plotting.
 - `data/`: root directory for graph datasets (created by you).
-- `logs/`: log files from SlateImpute runs.
+- `logs/`: log files from LapImpute runs.
 
 Environment
 -----------
@@ -43,8 +43,8 @@ Example conda setup (adapt the environment name, versions, and CUDA build
 to your system):
 
 ```bash
-conda create -n slateimpute python=3.9
-conda activate slateimpute
+conda create -n lapimpute python=3.9
+conda activate lapimpute
 
 # Install PyTorch (choose the correct CUDA build for your GPU/driver)
 pip install torch==2.0.1+cu117 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
@@ -59,7 +59,7 @@ pip install numpy scipy scikit-learn matplotlib hnswlib
 Data
 ----
 
-SlateImpute expects datasets to live under the local `data/` directory
+LapImpute expects datasets to live under the local `data/` directory
 in the usual PyTorch Geometric layout. Examples include:
 
 - Planetoid-style citation networks (e.g., Cora, Citeseer, Pubmed)
@@ -71,22 +71,22 @@ Most datasets are downloaded automatically by `torch_geometric` the
 first time they are requested, using the root paths in `util_funcs.py`
 (`./data` and `./data/hetero`).
 
-Running SlateImpute
--------------------
+Running LapImpute
+-----------------
 
 From this directory, after activating your Python environment:
 
 ```bash
-bash slateimpute.sh
+bash lapimpute.sh
 ```
 
-The script `slateimpute.sh` iterates over a predefined list of datasets and
-calls `slateimpute.py` with default hyperparameters (missing rate, group size,
-training epochs, etc.). You can override arguments by passing them after
-the script call, for example:
+The script `lapimpute.sh` iterates over a predefined list of datasets and
+calls `lapimpute.py` with default hyperparameters (missing rate, group size,
+training epochs, etc.). To run a single dataset or override arguments directly,
+call the Python entrypoint:
 
 ```bash
-bash slateimpute.sh --dataset Cora --mr 0.6 --group_size 10
+python -u lapimpute.py --dataset Cora --mr 0.6 --group_size 10
 ```
 
 During training, logs are written into `logs/`, and intermediate

@@ -31,7 +31,7 @@ from util_funcs import (
     soft_clamp,
 )
 
-LOGGER_NAME = "ours"
+LOGGER_NAME = "lapimpute"
 
 
 def parse_args() -> argparse.Namespace:
@@ -66,8 +66,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--auc_tolerance", type=float, default=2e-4, help="Minimum AUC improvement considered significant.")
     parser.add_argument("--gate_bias_scale", type=float, default=4.0)
     parser.add_argument("--aux_bce_weight", type=float, default=0.5, help="Weight for auxiliary binary classification loss.")
-    parser.add_argument("--log_dir", type=str, default="logs/ours")
-    parser.add_argument("--feature_dir", type=str, default="features/ours")
+    parser.add_argument("--log_dir", type=str, default="logs/lapimpute")
+    parser.add_argument("--feature_dir", type=str, default="features/lapimpute")
     parser.add_argument("--feature_ratio", type=float, default=0.4)
     parser.add_argument("--feature_constant", type=float, default=10.0)
     return parser.parse_args()
@@ -601,7 +601,11 @@ def run(args: argparse.Namespace, logger: logging.Logger) -> None:
     train_x_cpu[~train_mask] = float("nan")
     train_x_cpu = knn_impute_aknn(train_x_cpu)
     initial_gt = train_x_cpu.clone()
-    data.edge_index = add_knn_edges(train_x_cpu, data.edge_index, args.k)
+    edge_aug_start = time.time()
+    edge_compute_device = device if device.type == "cuda" else None
+    data.edge_index = add_knn_edges(train_x_cpu, data.edge_index, args.k, compute_device=edge_compute_device)
+    edge_aug_time = time.time() - edge_aug_start
+    logger.info("KNN edge augmentation time %.4fs", edge_aug_time)
     data = data.to(device)
 
     corr = compute_full_correlation_matrix(train_x_cpu.numpy(), device="cpu")

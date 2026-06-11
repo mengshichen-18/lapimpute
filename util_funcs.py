@@ -399,11 +399,22 @@ def knn_impute_aknnbiased(stage_filled: torch.Tensor,
     # 5) Convert back to torch
     return torch.from_numpy(X_imputed).to(stage_filled.device).type_as(stage_filled)
 
-def add_knn_edges(x, edge_index, k):
-    knn_edge_index = knn_graph(x, k=k, loop=False)
+def add_knn_edges(x, edge_index, k, compute_device=None):
+    output_device = edge_index.device
+    if compute_device is not None:
+        compute_device = torch.device(compute_device)
+        x_work = x.to(compute_device)
+        edge_index_work = edge_index.to(compute_device)
+    else:
+        x_work = x
+        edge_index_work = edge_index
+
+    knn_edge_index = knn_graph(x_work, k=k, loop=False)
     knn_edge_index = to_undirected(knn_edge_index)
-    new_edge_index = torch.cat([edge_index, knn_edge_index], dim=1)
-    new_edge_index, _ = coalesce(new_edge_index, None, x.size(0), x.size(0))
+    new_edge_index = torch.cat([edge_index_work, knn_edge_index], dim=1)
+    new_edge_index, _ = coalesce(new_edge_index, None, x_work.size(0), x_work.size(0))
+    if new_edge_index.device != output_device:
+        new_edge_index = new_edge_index.to(output_device)
     return new_edge_index
 
 def compute_full_correlation_matrix(features, variance_threshold=1e-8, device="cuda:1"):
